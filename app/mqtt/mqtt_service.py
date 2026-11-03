@@ -1,7 +1,13 @@
 import json
+import logging
+
 import paho.mqtt.client as mqtt
+from pydantic import ValidationError
 
 from app.core.config import MQTT_TOPIC, MQTT_PORT, MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD, MQTT_CLIENT_ID
+from app.schemas.sensor import SensorReadingIn
+
+logger = logging.getLogger(__name__)
 
 class MQTTService:
 
@@ -34,31 +40,41 @@ class MQTTService:
         self.client.loop_start()
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
-        print(f"Reason code: {reason_code}")
-        print(f"Descrição: {reason_code.getName()}")
-
         if reason_code == 0:
-            print("Conectado ao broker MQTT!")
+            logger.info("Conectado ao broker MQTT")
             client.subscribe(
                 MQTT_TOPIC,
                 qos=1
             )
         else:
-            print(f"Erro ao conectar: {reason_code} ({reason_code.getName()})")
+            logger.error(
+                "Falha ao conectar ao broker MQTT: %s (%s)",
+                reason_code,
+                reason_code.getName(),
+            )
 
     def on_message(self, client, userdata, msg):
         try:
-            data = json.loads(msg.payload.decode())
-            self.latest_data = data
-            print(f"[{msg.topic}] Nova leitura: {data}")
+            raw_data = json.loads(msg.payload.decode())
+            data = SensorReadingIn.model_validate(raw_data)
+            validated_data = data.model_dump()
+
+            self.latest_data = validated_data
+            logger.info("Leitura MQTT validada: topic=%s dados=%s", msg.topic, validated_data)
 
             if self.sensor_service:
-                self.sensor_service.save_reading(data)
+                self.sensor_service.save_reading(validated_data)
 
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-            print(f"Payload inválido: {e}")
+            logger.warning("Payload MQTT não contém JSON válido: topic=%s erro=%s", msg.topic, e)
+        except ValidationError as e:
+            logger.warning(
+                "Leitura MQTT rejeitada por dados inválidos: topic=%s erros=%s",
+                msg.topic,
+                e.errors(),
+            )
         except Exception as e:
-            print(f"Erro ao processar leitura: {e}")
+            logger.exception("Erro ao processar mensagem MQTT: topic=%s erro=%s", msg.topic, e)
 
     def disconnect(self):
         self.client.loop_stop()

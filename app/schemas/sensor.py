@@ -10,6 +10,17 @@ class SensorData(BaseModel):
     waterLevel: bool
 
 
+class SensorReadingIn(BaseModel):
+    """Raw sensor payload received from the Arduino over MQTT."""
+
+    model_config = ConfigDict(strict=True, extra="forbid", allow_inf_nan=False)
+
+    temperature: float = Field(ge=-5, le=105)
+    adc_ph: int = Field(ge=0, le=1023)
+    adc_condut: int = Field(ge=0, le=1023)
+    water_level: bool
+
+
 class SensorReadingOut(BaseModel):
     # from_attributes permite criar o schema direto de um objeto ORM:
     # SensorReadingOut.model_validate(reading)
