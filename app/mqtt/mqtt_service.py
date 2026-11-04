@@ -79,3 +79,5 @@ class MQTTService:
     def disconnect(self):
         self.client.loop_stop()
         self.client.disconnect()
+
+mqtt_service = MQTTService()

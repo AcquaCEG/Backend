@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI
+from app.lifespan import lifespan
 
 logging.basicConfig(
     level=logging.INFO,
@@ -10,11 +11,8 @@ logging.basicConfig(
 import app.core.depedencies
 
 from app.api.sensors import router
-from app.database.database import Base, engine
 
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(
     router,

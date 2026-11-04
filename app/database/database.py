@@ -26,3 +26,13 @@ def get_db():
 
     finally:
         db.close()
+
+def connect():
+    # Import the model here so its table is registered in Base.metadata before
+    # create_all runs, without introducing a database/model import cycle.
+    import app.models.sensor_reading
+
+    Base.metadata.create_all(bind=engine)
+
+def disconnect():
+    engine.dispose()
