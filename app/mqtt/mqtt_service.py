@@ -55,12 +55,33 @@ class MQTTService:
 
     def on_message(self, client, userdata, msg):
         try:
+            topic_parts = msg.topic.split("/")
+            if (
+                len(topic_parts) != 5 or
+                topic_parts[0] != "acquaceg" or
+                topic_parts[1] != "devices" or
+                topic_parts[3] != "sensors" or
+                topic_parts[4] != "raw"
+            ):
+                logger.warning("Tópico MQTT inválido: %s", msg.topic)
+                return
+
+            mac_address = topic_parts[2]            
+
+            raw_data = json.loads(msg.payload.decode())
+
             raw_data = json.loads(msg.payload.decode())
             data = SensorReadingIn.model_validate(raw_data)
             validated_data = data.model_dump()
 
+            validated_data["mac_address"] = mac_address
+
             self.latest_data = validated_data
-            logger.info("Leitura MQTT validada: topic=%s dados=%s", msg.topic, validated_data)
+            logger.info(
+                "Dispositivo %s enviou leitura: %s",
+                mac_address,
+                validated_data
+            )
 
             if self.sensor_service:
                 self.sensor_service.save_reading(validated_data)

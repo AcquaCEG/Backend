@@ -143,14 +143,11 @@ Create a `.env` file in the project root.
 Example:
 
 ```env
-POSTGRES_HOST=
-POSTGRES_PORT=
-POSTGRES_DB=
-POSTGRES_USER=
-POSTGRES_PASSWORD=
+DATABASE_URL=postgresql+psycopg2://usuario:senha@host:5432/banco
 
 MQTT_BROKER=
 MQTT_PORT=
+MQTT_CLIENT_ID=
 MQTT_USERNAME=
 MQTT_PASSWORD=
 MQTT_TOPIC=
@@ -318,14 +315,11 @@ Crie um arquivo `.env` na raiz do projeto.
 Exemplo:
 
 ```env
-POSTGRES_HOST=
-POSTGRES_PORT=
-POSTGRES_DB=
-POSTGRES_USER=
-POSTGRES_PASSWORD=
+DATABASE_URL=postgresql+psycopg2://usuario:senha@host:5432/banco
 
 MQTT_BROKER=
 MQTT_PORT=
+MQTT_CLIENT_ID=
 MQTT_USERNAME=
 MQTT_PASSWORD=
 MQTT_TOPIC=

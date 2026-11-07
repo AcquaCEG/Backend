@@ -33,6 +33,8 @@ class SensorService:
 
     def _convert_raw_data(self, raw_data):
 
+        mac_address = raw_data["mac_address"]
+
         raw_temperature = raw_data["temperature"]
         raw_ph = raw_data["adc_ph"]
         raw_conductivity = raw_data["adc_condut"]
@@ -43,12 +45,13 @@ class SensorService:
         conductivity = self.convert_condut(raw_conductivity)
         water_level = self.convert_water_level(raw_water_level)
 
-        return temperature, ph, conductivity, water_level
+        return mac_address, temperature, ph, conductivity, water_level
 
     # ---------- conversão ORM -> schema ----------
 
     def _to_schema(self, reading: SensorReading) -> SensorData:
         return SensorData(
+            mac_address=reading.mac_address,
             temperature=reading.temperature,
             ph=reading.ph,
             conductivity=reading.conductivity,
@@ -62,9 +65,10 @@ class SensorService:
 
     def save_reading(self, raw_data):
 
-        temperature, ph, conductivity, water_level = self._convert_raw_data(raw_data)
+        mac_address, temperature, ph, conductivity, water_level = self._convert_raw_data(raw_data)
 
         reading = SensorReading(
+            mac_address=mac_address,
             ph=ph,
             conductivity=conductivity,
             temperature=temperature,
